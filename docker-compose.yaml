@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  nginx:
+    image: "nginx:stable"
+    ports:
+      - "8000:80"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./foul-language-filter/:/var/www/laravel
+    depends_on:
+      - php
+      - postgres
+
+  php:
+    build:
+      context: docker
+      dockerfile: php/php.Dockerfile
+    volumes:
+      - ./foul-language-filter/:/var/www/laravel
+    depends_on:
+      - postgres
+
+  postgres:
+    image: "postgres:14.0"
+    ports:
+      - "5430:5432"
+    environment:
+      POSTGRES_DB: foul-language-db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  composer:
+    build:
+      context: docker
+      dockerfile: composer/composer.Dockerfile
+    volumes:
+      - ./foul-language-filter/:/var/www/laravel
+
+volumes:
+  pgdata:  # Именованный том для PostgreSQL
